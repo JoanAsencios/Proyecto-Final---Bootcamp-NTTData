@@ -1,65 +1,120 @@
 package com.microservice.client;
 
 import com.microservice.client.AccountClient.AccountClient;
-import com.microservice.client.controller.ClientController;
 import com.microservice.client.dao.ClientDao;
 import com.microservice.client.model.Client;
 import com.microservice.client.services.ClientService;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+import java.util.ArrayList;
+
+@ExtendWith(MockitoExtension.class)
 public class ClientServiceTest {
 
-
-    @Autowired
-    ClientController clientController;
-
-    @Autowired
-    ClientService clientService;
-
-    @Autowired
+    @Mock
     ClientDao clientDao;
 
-    Client client;
+    @Mock
+    AccountClient accountClient;
 
+    @InjectMocks
+    ClientService clientService;
 
-    @BeforeAll
-    void init(){
-        client = new Client();
-        client.setId(10);
-        client.setNombres("Pau");
-        client.setApellidos("Victor");
-        client.setDni("76677665");
-        client.setEmail("pvictor@nttdata.com");
+    Client client = new Client();
+    Client clientExpected = new Client();
+    Client clientUp = new Client();
+    ArrayList<Client> clientList = new ArrayList<>();
 
+    @BeforeEach
+    void setUp(){
+        //Objeto Cliente
+        client.setId(1);
+        client.setDni("56534349");
+        client.setNombres("Joan");
+        client.setApellidos("Pruebas");
+        client.setEmail("jpruebas@nttdata.com");
+        //Objeto Esperado
+        clientExpected.setId(1);
+        clientExpected.setDni("56534349");
+        clientExpected.setNombres("Joan");
+        clientExpected.setApellidos("Pruebas");
+        clientExpected.setEmail("jpruebas@nttdata.com");
+        //Objeto Cliente actualizar
+        clientUp.setId(1);
+        clientUp.setNombres("Joan Kelvin");
+        clientUp.setApellidos("Asencios Trujillo");
+        clientUp.setDni("75646354");
+        clientUp.setEmail("jasencio@nttdata.com");
+        //Lista de clientes
+        clientList.add(client);
+        clientList.add(clientUp);
+        clientList.add(clientExpected);
     }
 
     @Test
     void register(){
-        clientController.register(client);
+        Mockito.when(clientDao.register(client))
+                .thenReturn(clientExpected);
+
+        final Client clientResult = clientService.register(client);
+
+        Assertions.assertNotNull(clientResult);
+        Assertions.assertEquals(clientExpected, clientResult);
+        //Verificar cuantas veces se esta invocando el metodo
+        Mockito.verify(clientDao, Mockito.times(1)).register(client);
     }
 
     @Test
-    void searchId(){
-        clientController.getById(client.getId());
+    void searchById(){
+        Mockito.when(clientDao.getById(client.getId()))
+                .thenReturn(clientExpected);
+
+        final Client clientResult = clientService.getById(client.getId());
+
+        Assertions.assertNotNull(clientResult);
+        Assertions.assertEquals(clientExpected, clientResult);
+        //Verificar cuantas veces se esta invocando el metodo
+        Mockito.verify(clientDao, Mockito.times(1)).getById(client.getId());
     }
 
     @Test
-    void search(){
-        clientController.getAll();
+    void searchAll(){
+        Mockito.when(clientDao.getAll())
+                        .thenReturn(clientList);
+
+        final ArrayList<Client> listResult = clientService.getAll();
+
+        Assertions.assertNotNull(listResult);
+        Assertions.assertEquals(clientList, listResult);
+        //Verificar cuantas veces se esta invocando el metodo
+        Mockito.verify(clientDao, Mockito.times(1)).getAll();
     }
 
     @Test
     void update(){
-        clientController.update(client);
+        Mockito.when(clientDao.update(clientUp))
+                .thenReturn(clientExpected);
+
+        final Client clientResult = clientService.update(clientUp);
+
+        Assertions.assertNotNull(clientResult);
+        Assertions.assertEquals(clientExpected, clientResult);
+        //Verificar cuantas veces se esta invocando el metodo
+        Mockito.verify(clientDao, Mockito.times(1)).update(clientUp);
     }
 
     @Test
     void delete(){
-        clientController.delete(client.getId());
+        Mockito.doNothing().when(clientDao).delete(client.getId());
+
+        clientService.delete(client.getId());
+        //Verificar cuantas veces se esta invocando el metodo
+        Mockito.verify(clientDao, Mockito.times(1)).delete(client.getId());
     }
 
 }

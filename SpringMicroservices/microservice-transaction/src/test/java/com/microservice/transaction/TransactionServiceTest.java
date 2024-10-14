@@ -1,68 +1,89 @@
 package com.microservice.transaction;
 
+import com.microservice.transaction.dao.TransactionDao;
 import com.microservice.transaction.model.Transaction;
 import com.microservice.transaction.service.TransactionService;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+import java.util.ArrayList;
+
+@ExtendWith(MockitoExtension.class)
 public class TransactionServiceTest {
 
-    Transaction trxDeposito;
-    Transaction trxRetiro;
-    Transaction trxTransferencia;
+    @Mock
+    TransactionDao transactionDao;
+
+    @InjectMocks
     TransactionService transactionService;
 
-    @BeforeAll
-    void init(){
-        trxDeposito = new Transaction();
-        trxDeposito.setId(10);
+    Transaction trxDeposito = new Transaction();
+    Transaction trxRetiro = new Transaction();
+    Transaction trxTransferencia = new Transaction();
+    ArrayList<Transaction> trxList = new ArrayList<>();
+
+    @BeforeEach
+    void setUp(){
+        trxDeposito.setId(20);
         trxDeposito.setIdCuentaOrig(20);
         trxDeposito.setTipo("Deposito");
         trxDeposito.setMonto(45);
         trxDeposito.setFecha("2024-11-10");
 
-        trxRetiro = new Transaction();
-        trxRetiro.setId(10);
+        trxRetiro.setId(30);
         trxRetiro.setIdCuentaOrig(20);
         trxRetiro.setTipo("Retiro");
         trxRetiro.setMonto(80);
         trxRetiro.setFecha("2024-11-10");
 
-        trxTransferencia = new Transaction();
-        trxTransferencia.setId(10);
+        trxTransferencia.setId(40);
         trxTransferencia.setIdCuentaOrig(20);
         trxTransferencia.setIdCuentaDest(30);
         trxTransferencia.setTipo("Transferencia");
         trxTransferencia.setMonto(457);
         trxTransferencia.setFecha("2024-11-10");
 
-        transactionService = new TransactionService();
+        trxList.add(trxDeposito);
+        trxList.add(trxRetiro);
+        trxList.add(trxTransferencia);
     }
 
     @Test
     void depositar(){
-        init();
+        Mockito.doNothing().when(transactionDao).registerDeposito(trxDeposito);
         transactionService.registerDeposito(trxDeposito);
+        Mockito.verify(transactionDao, Mockito.times(1)).registerDeposito(trxDeposito);
     }
 
     @Test
     void retirar(){
-        init();
+        Mockito.doNothing().when(transactionDao).registerRetiro(trxRetiro);
         transactionService.registerRetiro(trxRetiro);
+        Mockito.verify(transactionDao, Mockito.times(1)).registerRetiro(trxRetiro);
     }
 
     @Test
     void transferir(){
-        init();
+        Mockito.doNothing().when(transactionDao).registerTransferencia(trxTransferencia);
         transactionService.registerTransferencia(trxTransferencia);
+        Mockito.verify(transactionDao, Mockito.times(1)).registerTransferencia(trxTransferencia);
     }
 
     @Test
     void showHistorial(){
-        init();
-        transactionService.getAll();
+        Mockito.when(transactionDao.getAll())
+                .thenReturn(trxList);
+
+        final ArrayList<Transaction> resultTrx = transactionService.getAll();
+        Assertions.assertNotNull(resultTrx);
+        Assertions.assertEquals(trxList, resultTrx);
+        Mockito.verify(transactionDao, Mockito.times(1)).getAll();
     }
 
 }
